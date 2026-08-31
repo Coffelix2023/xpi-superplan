@@ -4,12 +4,12 @@
 
 ## 1. M1 档案核心
 
-- [ ] 1.1 定义 domain 类型(Workflow/DecisionPoint/Candidate/Selection/Task/Revision/状态机),验证 `pnpm typecheck` 通过且状态机拒绝非法状态转换(单测)
-- [ ] 1.2 实现 workflow id 与路径校验(`<date>-<slug>`、路径遍历拒绝),验证非法 id/路径遍历单测全部拒绝
-- [ ] 1.3 实现档案创建(完整目录 + 最小合法 Markdown + README.md + timeline 记录),验证创建后目录结构与 design.md D3 一致(单测)
-- [ ] 1.4 实现原子写入(临时文件+rename)与 revision 快照,验证修订生成新 revision 且历史快照字节不变(单测)
-- [ ] 1.5 实现 `appendEntry` 恢复锚点与核心文件重读,验证模拟重启后仅从 README.md + tasks.md 恢复状态(单测)
-- [ ] 1.6 冒烟:`pi -e ./src/index.ts` 下创建→写入→恢复全链路手动跑通
+- [x] 1.1 定义 domain 类型(Workflow/DecisionPoint/Candidate/Selection/Task/Revision/状态机),验证 `pnpm typecheck` 通过且状态机拒绝非法状态转换(单测)
+- [x] 1.2 实现 workflow id 与路径校验(`<date>-<slug>`、路径遍历拒绝),验证非法 id/路径遍历单测全部拒绝
+- [x] 1.3 实现档案创建(完整目录 + 最小合法 Markdown + README.md + timeline 记录),验证创建后目录结构与 design.md D3 一致(单测)
+- [x] 1.4 实现原子写入(临时文件+rename)与 revision 快照,验证修订生成新 revision 且历史快照字节不变(单测)
+- [x] 1.5 实现 `appendEntry` 恢复锚点与核心文件重读,验证模拟重启后仅从 README.md + tasks.md 恢复状态(单测)
+- [x] 1.6 冒烟:`pi -e ./src/index.ts` 下创建→写入→恢复全链路手动跑通
 
 ## 2. M2 决策闭环(TUI 先行)
 
