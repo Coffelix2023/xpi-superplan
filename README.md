@@ -11,14 +11,24 @@
 前提:Node.js 22+,pi 0.84.4+。
 
 ```bash
-# 方式一:软链本地仓库(开发推荐,改代码即生效)
-ln -sfn /path/to/xpi-superplan ~/.pi/agent/extensions/xpi-superplan
-
-# 方式二:克隆到扩展目录
-git clone https://github.com/Coffelix2023/xpi-superplan ~/.pi/agent/git/github.com/Coffelix2023/xpi-superplan
+pi install git:github.com/Coffelix2023/xpi-superplan
 ```
 
-无需构建——Pi 直接加载 `src/index.ts` TypeScript 源码。扩展内已有热载:在 Pi 里改完代码执行 `/reload`。
+Pi 会把仓库克隆到 `~/.pi/agent/git/github.com/Coffelix2023/xpi-superplan/` 并注册为扩展(跟踪默认分支 `main`)。
+
+更新到最新版:
+
+```bash
+pi update git:github.com/Coffelix2023/xpi-superplan
+```
+
+卸载:
+
+```bash
+pi uninstall git:github.com/Coffelix2023/xpi-superplan
+```
+
+无需构建——Pi 直接加载 `src/index.ts` TypeScript 源码。不要用软链(`ln -s`)指向本地仓库:软链会让"已安装的版本"与开发中的工作区悄然耦合,正式环境调试时极易忘记摘除,产生难以排查的版本漂移。开发调试请用一次性加载:`pi -e ./src/index.ts`。
 
 ## 快速上手
 
@@ -110,7 +120,7 @@ pnpm -w run lint      # biome check .
 pnpm test             # vitest run
 ```
 
-冒烟:`pi -e ./src/index.ts`(quick test,不支持热载);日常开发用软链 + `/reload`。
+冒烟:`pi -e ./src/index.ts`(一次性加载,不支持热载);日常开发在本仓库工作区直接 `pnpm test` 验证后走提交流程。
 
 ## License
 
