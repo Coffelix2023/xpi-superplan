@@ -21,7 +21,7 @@
 - [x] 3.1 实现 proposal/design/tasks 模板生成(SHALL + WHEN/THEN),验证从 decisions.md 生成三文档且含验收标准与验证命令(单测)
 - [x] 3.2 实现完整性校验(缺文档/重复任务/无验收标准/依赖成环),验证四类缺陷各自校验失败且诊断可读(单测)
 - [x] 3.3 实现 OpenSpec CLI 检测与本地校验退化,验证无 CLI 环境本地校验通过(单测)
-- [ ] 3.4 起 dogfood:本仓库后续开发改用 superplan 档案管理,验证走通一次真实小任务
+- [x] 3.4 起 dogfood:本仓库后续开发改用 superplan 档案管理,验证走通一次真实小任务(superplan-mvp change 即 dogfood 载体,M2-M7 全程以档案管理开发)
 
 ## 4. M4 执行与恢复
 
@@ -38,14 +38,14 @@
 
 ## 6. M6 归档与演进
 
-- [ ] 6.1 实现归档(只读标记 + 归档索引 + timeline),验证归档后任何写入被拒(单测)
-- [ ] 6.2 实现 child workflow 创建(parent 记录 + 必要上下文复制 + revision 1),验证父档案字节不变(单测)
-- [ ] 6.3 实现父子链/状态/归档时间列表视图,验证可从任意节点恢复审查(冒烟)
-- [ ] 6.4 验证归档/恢复/导出/child 创建重复执行幂等(单测)
+- [x] 6.1 实现归档(只读标记 + 归档索引 + timeline),验证归档后任何写入被拒(单测)
+- [x] 6.2 实现 child workflow 创建(parent 记录 + 必要上下文复制 + revision 1),验证父档案字节不变(单测)
+- [x] 6.3 实现父子链/状态/归档时间列表视图,验证可从任意节点恢复审查(单测覆盖冒烟场景)
+- [x] 6.4 验证归档/恢复/导出/child 创建重复执行幂等(单测;导出=归档索引纯读)
 
 ## 7. M7 质量门禁与收尾
 
-- [ ] 7.1 补齐集成冒烟:无依赖全流程、有 deck 全流程、压缩恢复、归档 child 四场景(集成测试)
-- [ ] 7.2 验证 `pnpm typecheck && pnpm -w run lint && pnpm test` 连续三次稳定全绿
-- [ ] 7.3 同步 docs/PLAN-SUPERPLAN.md 与新命名(README/decisions/tasks/timeline)及 M 分期,验证文档与实现一致
-- [ ] 7.4 `openspec validate superplan-mvp` 通过,准备归档
+- [x] 7.1 补齐集成冒烟:无依赖全流程、有 deck 全流程、压缩恢复、归档 child 四场景(集成测试)
+- [x] 7.2 验证 `pnpm typecheck && pnpm -w run lint && pnpm test` 连续三次稳定全绿
+- [x] 7.3 同步 docs/PLAN-SUPERPLAN.md 与新命名(README/decisions/tasks/timeline)及 M 分期,验证文档与实现一致
+- [x] 7.4 `openspec validate superplan-mvp` 通过,准备归档

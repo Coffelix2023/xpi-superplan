@@ -262,20 +262,34 @@ pnpm lint
 pnpm test
 ```
 
-## 10. 当前实现状态
+## 10. 当前实现状态（已随 superplan-mvp 交付）
 
-当前仓库里，`src/index.ts` 仍只是一个状态命令入口，尚未实现本文档中的工作流能力。  
-因此本文档描述的是**下一阶段的执行计划**，不是现状说明。
+实现已按 M1–M7 纵向切片完成（详见 `openspec/changes/superplan-mvp/`），模块结构与本文档分期的对应关系：
 
-## 11. 待验证项
+| 分期 | 实现 | 模块 |
+| --- | --- | --- |
+| M1 档案核心 | workflow 创建 / 原子写入 / revision 快照 / timeline / 恢复锚点 | `src/archive/` `src/domain/` |
+| M2 决策闭环 | TUI 选型、deck 检测与退化、tool_result 捕获强制回写 decisions.md | `src/decision/` |
+| M3 工件生成 | proposal/design/tasks 模板（SHALL + WHEN/THEN）、完整性校验、OpenSpec CLI 可选 | `src/artifacts/` |
+| M4 执行恢复 | 任务状态机、暂停/恢复、session_before_compact 压缩前快照 | `src/execution/` |
+| M5 模型配置 | 阶段模型 fail-closed 校验、手动升降档（跨供应商交接提示）、plan_mode_question 可选桥接 | `src/model/` |
+| M6 归档演进 | 不可变归档（写入咽喉点守卫）、归档索引、child workflow、父子链视图、操作幂等 | `src/archive/store.ts` |
+| M7 质量门禁 | 四场景集成冒烟、三条门禁三次全绿 | `src/integration.test.ts` |
 
-以下内容需要后续实现或实际运行后再确认：
+档案文件命名统一为：`README.md`（元信息）、`decisions.md`、`research.md`、`proposal.md`、`design.md`、`tasks.md`、`timeline.md`，快照位于 `revisions/<n>/`。
 
-- `design_deck` 的真实启动与可视页面能力
-- `pi-plan-mode` 在当前 Pi 环境中的可用注册状态
-- Deck 安装/缺失/拒绝时的真实退化路径
-- OpenSpec CLI 的实际可选适配范围
-- 自动 Git 提交策略是否最终启用
+## 11. 待验证项（更新）
+
+以下内容已验证：
+
+- ~~`design_deck` 的真实启动与可视页面能力~~ 已实测：`tool_result` details 完整保留 `selections`
+- ~~Deck 安装/缺失/拒绝时的真实退化路径~~ 已实现并有单测覆盖
+- ~~`pi-plan-mode` 在当前 Pi 环境中的可用注册状态~~ 采用检测式浅集成（`detectPlanQuestionTool`），不可用时 ctx.ui 主路径
+
+仍需运行确认：
+
+- OpenSpec CLI 的 `verify`/`archive` 深度适配是否值得做（当前仅 `validate`）
+- 自动 Git 提交策略是否最终启用（当前不自动提交）
 
 ## 12. 最小结论
 
