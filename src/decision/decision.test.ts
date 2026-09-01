@@ -115,6 +115,27 @@ describe("appendDecision", () => {
     ).rejects.toThrow("无候选 nope");
   });
 
+  it("两次 appendDecision 追加而非覆盖历史", async () => {
+    await appendDecision(workflowDir(), POINT, {
+      candidateId: "a",
+      revision: 1,
+    });
+    await appendDecision(
+      workflowDir(),
+      {
+        ...POINT,
+        id: "dp-2",
+        question: "第二个问题?",
+      },
+      {
+        candidateId: "b",
+        revision: 2,
+      },
+    );
+    const text = await readFile(path.join(workflowDir(), "decisions.md"), "utf8");
+    expect(text).toContain("## dp-1 — 选哪个存储?");
+    expect(text).toContain("## dp-2 — 第二个问题?");
+  });
   it("无备注落盘为 (无)", async () => {
     await appendDecision(workflowDir(), POINT, {
       candidateId: "b",

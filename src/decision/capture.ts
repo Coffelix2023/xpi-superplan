@@ -5,9 +5,9 @@
  * details.selections = Record<slideId, optionLabel>,label 为 "<candidateId> <title>"。
  */
 
-import { appendTimeline } from "../archive/store.ts";
+import { appendTimeline, atomicWrite } from "../archive/store.ts";
 import type { DecisionPoint, Selection } from "../domain/types.ts";
-import { appendDecision } from "./record.ts";
+import { appendDecision, readExistingDecisions } from "./record.ts";
 
 /** pi-design-deck tool_result details 的实测面。 */
 export interface DeckDetails {
@@ -100,4 +100,45 @@ export async function captureDeckSelection(
     `决策点 ${point.id} 从 deck tool_result 强制回写,选中 ${selection.candidateId}`,
   );
   return true;
+}
+
+/**
+ * 无 DecisionPoint 的原始回写:agent 自行组装的 deck,tool_result 中只有
+ * slideId/选中 label/备注,按原样落盘,不虚构候选列表(候选分析由 agent 补充)。
+ * 返回已回写的 slideId 列表;非 completed deck 结果或无选择时为空数组。
+ */
+export async function appendDeckSelections(
+  workflowDir: string,
+  revision: number,
+  event: ToolResultLike,
+): Promise<string[]> {
+  if (!isCompletedDeckResult(event)) {
+    return [];
+  }
+  const selections = event.details.selections ?? {};
+  const slideIds = Object.keys(selections);
+  if (slideIds.length === 0) {
+    return [];
+  }
+  const at = new Date().toISOString();
+  const blocks = slideIds.map((slideId) =>
+    [
+      `## deck — ${slideId}`,
+      "",
+      `- 时间: ${at}`,
+      `- revision: ${revision}`,
+      `- 选中项: **${selections[slideId]}**`,
+      `- 备注: ${event.details.notes?.[slideId] ?? "(无)"}`,
+      "- 来源: design_deck tool_result 自动回写(原始记录)",
+      "",
+    ].join("\n"),
+  );
+  const existing = await readExistingDecisions(workflowDir);
+  await atomicWrite(workflowDir, "decisions.md", `${existing}${blocks.join("\n")}`);
+  await appendTimeline(
+    workflowDir,
+    "decision-captured",
+    `deck 自动回写 ${slideIds.length} 项: ${slideIds.join(", ")}`,
+  );
+  return slideIds;
 }

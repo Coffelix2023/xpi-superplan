@@ -1,5 +1,16 @@
+import { readFile } from "node:fs/promises";
+import { resolveInside } from "../archive/paths.ts";
 import { atomicWrite } from "../archive/store.ts";
 import type { DecisionPoint, Selection } from "../domain/types.ts";
+
+/** 读现有 decisions.md;缺失视为空(追加语义,不重写历史)。 */
+export async function readExistingDecisions(workflowDir: string): Promise<string> {
+  try {
+    return await readFile(resolveInside(workflowDir, "decisions.md"), "utf8");
+  } catch {
+    return "";
+  }
+}
 
 /** 追加一条决策记录到 decisions.md;不重写历史。 */
 export async function appendDecision(
@@ -28,5 +39,6 @@ export async function appendDecision(
     rejected || "  - (单候选)",
     "",
   ];
-  await atomicWrite(workflowDir, "decisions.md", `${lines.join("\n")}\n`);
+  const existing = await readExistingDecisions(workflowDir);
+  await atomicWrite(workflowDir, "decisions.md", `${existing}${lines.join("\n")}\n`);
 }
