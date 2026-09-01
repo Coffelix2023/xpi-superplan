@@ -10,6 +10,8 @@ import { createWorkflow } from "./archive/store.ts";
 import { SESSION_ANCHOR_TYPE, type SessionAnchor } from "./domain/types.ts";
 import xpiSuperplan from "./index.ts";
 
+const COMMAND_ID_RE = /^\d{4}-\d{2}-\d{2}-command-test$/;
+
 type CommandHandler = (args: string, ctx: ExtensionCommandContext) => Promise<void>;
 
 type FakeContext = Pick<ExtensionCommandContext, "cwd" | "isProjectTrusted" | "ui">;
@@ -38,6 +40,7 @@ function registerForTest(
         data,
         type,
       }),
+    on: () => () => {}, // 压缩快照钩子桩
     registerCommand: (
       _name: string,
       options: {
@@ -81,7 +84,7 @@ describe("xpi-superplan 命令恢复锚点", () => {
     expect(entries[0].data).toEqual({
       revision: 1,
       state: "draft",
-      workflowId: expect.stringMatching(/^\d{4}-\d{2}-\d{2}-command-test$/),
+      workflowId: expect.stringMatching(COMMAND_ID_RE),
     });
     expect(notifications[0]).toContain("state: draft");
   });
@@ -114,7 +117,7 @@ describe("xpi-superplan 命令恢复锚点", () => {
     ]);
     expect(notifications[0]).toContain("2026-08-31-resume-test");
     expect(notifications[0]).toContain("revision=1");
-    expect(notifications[0]).toContain("待办任务=0");
+    expect(notifications[0]).toContain("待办=0");
     expect(
       await readFile(
         path.join(cwd, ".pi/superplan/workflows/2026-08-31-resume-test/tasks.md"),
