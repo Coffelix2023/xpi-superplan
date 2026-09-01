@@ -89,5 +89,5 @@ M2 先做 TUI 退化路径(保底真相),后挂 deck 增强——任何时刻产
 
 ## Open Questions
 
-- `tool_result` 事件中 deck 返回的 details 是否完整保留 `selections`(M2 首日实测)。
+- ~~`tool_result` 事件中 deck 返回的 details 是否完整保留 `selections`~~ **已实测确认(2026-08-31, pi 0.84.4 + pi-design-deck)**:完整保留。`CustomToolResultEvent.details` 为 `{ status: "completed", url: string, selections: Record<slideId, optionLabel>, notes?: Record<slideId, note>, finalNotes?: string }`;`content[0].text` 为稳定文本 `"Design deck completed.\n\nSelections:\n- <slideId>: <label>"`,无需文本解析器。注意 `selections` 值是 option **label**(`"<candidateId> <title>"`),回写 decisions.md 时按首个空格拆出 candidateId。
 - OpenSpec CLI 的实际可选适配范围(`verify`/`archive` 映射是否值得做,M3 后评估)。
