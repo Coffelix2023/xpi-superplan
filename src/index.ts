@@ -1,10 +1,21 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { createWorkflow, listWorkflowIds, restoreFromDisk } from "./archive/store.ts";
 import { SESSION_ANCHOR_TYPE, type SessionAnchor } from "./domain/types.ts";
+import { registerCompactSnapshot } from "./execution/compact-snapshot.ts";
+
+/** 当前活动工作流 id;create/resume 设置,供压缩快照钩子读取。 */
+let activeWorkflowId: string | undefined;
 
 const VERSION = "0.1.0";
 
+const ARGS_RE = /\s+/;
 export default function xpiSuperplan(pi: ExtensionAPI): void {
+  registerCompactSnapshot(
+    pi,
+    () => activeWorkflowId,
+    // 钩子触发时无 ctx,约定扩展工作目录为进程 cwd(Pi 主进程即项目根)
+    () => process.cwd(),
+  );
   pi.registerCommand("xpi-superplan", {
     description: "xpi-superplan 工作流: create <title> | resume [id] | list",
     handler: async (args, ctx) => {
@@ -12,7 +23,7 @@ export default function xpiSuperplan(pi: ExtensionAPI): void {
         ctx.ui.notify("项目未受信任,xpi-superplan 已停用(fail-closed)", "warning");
         return;
       }
-      const [sub, ...rest] = args.trim().split(/\s+/).filter(Boolean);
+      const [sub, ...rest] = args.trim().split(ARGS_RE).filter(Boolean);
 
       if (sub === "create") {
         const title = rest.join(" ");
@@ -24,6 +35,7 @@ export default function xpiSuperplan(pi: ExtensionAPI): void {
           cwd: ctx.cwd,
           title,
         });
+        activeWorkflowId = manifest.id;
         const anchor: SessionAnchor = {
           revision: manifest.revision,
           state: manifest.state,
@@ -40,17 +52,18 @@ export default function xpiSuperplan(pi: ExtensionAPI): void {
           ctx.ui.notify("没有可恢复的工作流", "warning");
           return;
         }
-        const { manifest, tasks } = await restoreFromDisk(ctx.cwd, id);
+        activeWorkflowId = id;
+        const { manifest } = await restoreFromDisk(ctx.cwd, id);
         const anchor: SessionAnchor = {
           revision: manifest.revision,
           state: manifest.state,
           workflowId: manifest.id,
         };
         pi.appendEntry(SESSION_ANCHOR_TYPE, anchor);
-        const taskLines = tasks.split("\n").filter((l) => l.startsWith("- ["));
-        const pending = taskLines.filter((l) => l.startsWith("- [ ]")).length;
+        const { resumeWorkflow } = await import("./execution/pause-resume.ts");
+        const info = await resumeWorkflow(ctx.cwd, id);
         ctx.ui.notify(
-          `已恢复 ${manifest.id}: state=${manifest.state}, revision=${manifest.revision}, 待办任务=${pending}`,
+          `已恢复 ${manifest.id}: state=${manifest.state}, revision=${manifest.revision}, 待办=${info.pendingCount}${info.currentTask ? `, 下一任务: ${info.currentTask.id} ${info.currentTask.title}` : ""}`,
         );
         return;
       }

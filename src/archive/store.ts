@@ -215,6 +215,34 @@ export async function readManifest(workflowDir: string): Promise<WorkflowManifes
   return manifest;
 }
 
+/**
+ * 通用 manifest 修订:mutate -> README 原子重写 ->(可选)timeline -> 新 revision 快照。
+ * timeline 在快照前追加,保证快照自包含;D4 写入纪律。
+ */
+export async function updateManifest(
+  workflowDir: string,
+  mutate: (m: WorkflowManifest) => void,
+  timeline?: (m: WorkflowManifest) => {
+    detail: string;
+    event: string;
+  },
+): Promise<WorkflowManifest> {
+  const manifest = await readManifest(workflowDir);
+  mutate(manifest);
+  manifest.revision += 1;
+  manifest.updatedAt = nowIso();
+  const { body } = parseFrontmatter(
+    await readFile(resolveInside(workflowDir, "README.md"), "utf8"),
+  );
+  await atomicWrite(workflowDir, "README.md", manifestFrontmatter(manifest) + body);
+  const entry = timeline?.(manifest);
+  if (entry) {
+    await appendTimeline(workflowDir, entry.event, entry.detail);
+  }
+  await snapshotRevision(workflowDir, manifest.revision);
+  return manifest;
+}
+
 /** 修订:更新 README 并生成新 revision 快照。 */
 export async function bumpRevision(
   workflowDir: string,

@@ -43,13 +43,17 @@ describe("档案创建 (1.3)", () => {
     expect(manifest.revision).toBe(1);
 
     const dir = resolveWorkflowDir(cwd, OPTS.id);
-    for (const file of CORE_FILES) {
-      const content = await readFile(path.join(dir, file), "utf8");
-      expect(content.length, file).toBeGreaterThan(0);
+    const contents = await Promise.all(
+      CORE_FILES.map((file) => readFile(path.join(dir, file), "utf8")),
+    );
+    for (const [i, file] of CORE_FILES.entries()) {
+      expect(contents[i].length, file).toBeGreaterThan(0);
     }
-    for (const sub of SUB_DIRS) {
-      expect(await readdir(path.join(dir, sub)), sub).toBeDefined();
-    }
+    await Promise.all(
+      SUB_DIRS.map(async (sub) => {
+        expect(await readdir(path.join(dir, sub)), sub).toBeDefined();
+      }),
+    );
     // README 含 frontmatter 元信息
     const readme = await readFile(path.join(dir, "README.md"), "utf8");
     expect(readme).toContain(`id: ${OPTS.id}`);
