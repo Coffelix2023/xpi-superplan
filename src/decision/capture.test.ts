@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createWorkflow } from "../archive/store.ts";
 import type { DecisionPoint } from "../domain/types.ts";
 import {
+  appendDeckSelections,
   captureDeckSelection,
   isCompletedDeckResult,
   selectionFromDetails,
@@ -215,5 +216,77 @@ describe("captureDeckSelection(强制回写)", () => {
       }),
     ).rejects.toThrow("无法映射回候选");
     expect(await decisions()).not.toContain("dp-1");
+  });
+});
+
+describe("appendDeckSelections(无 DecisionPoint 原始回写)", () => {
+  it("completed deck 结果按原样落盘 slideId/选中项/备注", async () => {
+    const recorded = await appendDeckSelections(workflowDir(), 3, {
+      toolName: "design_deck",
+      details: {
+        status: "completed",
+        url: "",
+        notes: {
+          "dp-1": "备注 x",
+        },
+        selections: {
+          "dp-1": "a JSON 文件",
+          "dp-2": "b 方案 B",
+        },
+      },
+    });
+    expect(recorded).toEqual([
+      "dp-1",
+      "dp-2",
+    ]);
+    const text = await decisions();
+    expect(text).toContain("## deck — dp-1");
+    expect(text).toContain("- 选中项: **a JSON 文件**");
+    expect(text).toContain("- 备注: 备注 x");
+    expect(text).toContain("## deck — dp-2");
+    expect(text).toContain("- revision: 3");
+    const timeline = await readFile(path.join(workflowDir(), "timeline.md"), "utf8");
+    expect(timeline).toContain("decision-captured");
+  });
+
+  it("非 deck / 取消 / 无选择均不写", async () => {
+    expect(
+      await appendDeckSelections(workflowDir(), 1, {
+        toolName: "bash",
+        details: {
+          status: "completed",
+          selections: {
+            a: "b",
+          },
+        },
+      }),
+    ).toEqual([]);
+    expect(
+      await appendDeckSelections(workflowDir(), 1, {
+        toolName: "design_deck",
+        details: {
+          status: "cancelled",
+        },
+      }),
+    ).toEqual([]);
+    expect(await decisions()).not.toContain("## deck —");
+  });
+
+  it("两次回写追加而非覆盖", async () => {
+    const event = (slideId: string) => ({
+      toolName: "design_deck",
+      details: {
+        status: "completed",
+        url: "",
+        selections: {
+          [slideId]: "a 选项",
+        },
+      },
+    });
+    await appendDeckSelections(workflowDir(), 1, event("s1"));
+    await appendDeckSelections(workflowDir(), 2, event("s2"));
+    const text = await decisions();
+    expect(text).toContain("## deck — s1");
+    expect(text).toContain("## deck — s2");
   });
 });
