@@ -1,6 +1,7 @@
 ---
 name: xpi-superplan
-description: xpi-superplan 工作流的 start/grillme/save/fix/fix-fast 行为流程。收到 `[xpi-superplan] mode: ...` 调度消息,或用户要求开始计划/盘问需求/保存结论/修改开发任务决策时使用。严格按对应模式执行,不跳过决策落盘。
+description: >-
+  xpi-superplan 工作流的 start/grillme/save/fix/fix-fast 行为流程。收到 `[xpi-superplan] mode: ...` 调度消息,或用户要求开始计划/盘问需求/保存结论/修改开发任务决策时使用。严格按对应模式执行,不跳过决策落盘。
 ---
 
 # xpi-superplan 行为流程
