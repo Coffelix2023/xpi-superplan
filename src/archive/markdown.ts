@@ -13,11 +13,13 @@ export function serializeFrontmatter(data: FrontmatterData): string {
   return `---\n${lines.join("\n")}\n---\n`;
 }
 
+const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---\n?/;
+
 export function parseFrontmatter(content: string): {
   data: Record<string, string>;
   body: string;
 } {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n?/);
+  const match = content.match(FRONTMATTER_RE);
   if (!match) {
     return {
       body: content,
