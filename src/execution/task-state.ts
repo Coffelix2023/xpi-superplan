@@ -83,7 +83,10 @@ export async function readTaskStates(workflowDir: string): Promise<
   }));
 }
 
-/** 定位下一个待办任务(按文件顺序第一个 pending);供恢复命令使用。 */
+/**
+ * 定位当前任务:优先进行中(in_progress,恢复时接上断点),否则文件顺序第一个 pending。
+ * 供恢复命令与压缩快照使用;全部完成/失败时返回 undefined。
+ */
 export async function nextPendingTask(workflowDir: string): Promise<
   | {
       id: string;
@@ -92,11 +95,13 @@ export async function nextPendingTask(workflowDir: string): Promise<
   | undefined
 > {
   const states = await readTaskStates(workflowDir);
-  const pending = states.find((s) => s.state === "pending");
-  if (!pending) return undefined;
+  const target =
+    states.find((s) => s.state === "in_progress") ??
+    states.find((s) => s.state === "pending");
+  if (!target) return undefined;
   const text = await readFile(workflowFile(workflowDir), "utf8");
   return {
-    id: pending.id,
-    title: findBlock(text, pending.id).title,
+    id: target.id,
+    title: findBlock(text, target.id).title,
   };
 }
